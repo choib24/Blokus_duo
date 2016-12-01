@@ -4,19 +4,21 @@
 #include<string.h>
 #include<conio.h>
 #include<Windows.h>
+#include<math.h>
 
 #define EMPTY 0
 #define BLOCK 1
 #define START 2
-#define ORANGE 1
-#define VIOLET -1
+#define ORANGE 3
+#define VIOLET 4
 #define BOARD_SIZE 14
+
+int board[BOARD_SIZE][BOARD_SIZE] = { EMPTY };
 
 typedef struct _PIECES_INFO
 {
 	char key;
-	int height;
-	int width;
+	int space;
 	int shape[5][5];
 }Piece;
 
@@ -33,14 +35,8 @@ typedef struct _PLAYER_INFO
 	HashMap playerBlock[21];
 }Player;
 
-typedef struct _GAME_INFO
-{
-	int move; //total move
-	Player orange, violet; //player
-	int board[14][14];
-}Game;
 
-void clearBoard(int (*board)[BOARD_SIZE])
+void clearBoard()
 {
 	int i, j;
 	for (i = 0; i < BOARD_SIZE; i++)
@@ -50,7 +46,7 @@ void clearBoard(int (*board)[BOARD_SIZE])
 	}
 }
 
-void initGame(int (*board)[BOARD_SIZE])
+void initGame()
 {
 	board[4][4] = START;
 	board[9][9] = START;
@@ -86,9 +82,9 @@ int isAlreadyUsed(Player player, char blockKey)
 	else return 0;
 }
 
-int isInitialMove(Player *player)
+int isInitialMove(Player player)
 {
-	if ((*player).leftover == 89)
+	if (player.leftover == 89)
 		return 1;
 	else return 0;
 }
@@ -133,7 +129,132 @@ int getLocation(char coordinate)
 	return coordinateInt;
 }
 
-void putBlock(int (*board)[BOARD_SIZE], Player *player, char key, int xCorChar, int yCorChar)
+int findNearestStartingPoint(int blockAxisX, int blockAxisY)
+{
+	double distance1Exp = pow((blockAxisX - 4), 2) + pow((blockAxisY - 4), 2);
+	double distance2Exp = pow((blockAxisX - 9), 2) + pow((blockAxisY - 9), 2);
+
+	if (distance1Exp < distance2Exp)
+		return 4;
+	else return 9;
+}
+
+int isValidFirstMove(int blockAxisX, int blockAxisY)
+{
+	int startPoint = findNearestStartingPoint(blockAxisX, blockAxisY);
+
+	if (board[startPoint][startPoint] != BLOCK)
+		return 0;
+	else return 1;
+}
+
+int isPlaceable(Piece piece, int blockAxisX, int blockAxisY)
+{
+	int i, j;
+	int blockX = 0;
+	int blockY = 0;
+	int count = 0;
+
+	for (i = blockAxisY - 2; i < blockAxisY + 3; i++)
+	{
+		for (j = blockAxisX - 2; j < blockAxisX + 3; j++)
+		{
+			if (piece.shape[blockY][blockX] == BLOCK)
+			{
+				if (board[i][j] != EMPTY && board[i][j] != START)
+					count++;
+			}
+			blockX++;
+		}
+		blockY++;
+		blockX = 0;
+	}
+
+	if (count == piece.space)
+		return 1;
+	else return 0;
+}
+
+int isEdge(int xCor, int yCor)
+{
+	int isHorizontallyOpen = 0;
+	int isVerticallyOpen = 0;
+
+	if (board[yCor - 1][xCor] == EMPTY || board[yCor + 1][xCor] == EMPTY)
+		isVerticallyOpen = 1;
+
+	if (board[yCor][xCor - 1] == EMPTY || board[yCor][xCor + 1] == EMPTY)
+		isHorizontallyOpen = 1;
+
+	if (isHorizontallyOpen && isVerticallyOpen)
+		return 1;
+	else return 0;
+}
+
+int isCornerTouching(int color, int xCor, int yCor)
+{
+	if (board[yCor - 1][xCor - 1] != color)
+		return 0;
+	if (board[yCor + 1][xCor - 1] != color)
+		return 0;
+	if (board[yCor - 1][xCor + 1] != color)
+		return 0;
+	if (board[yCor + 1][xCor + 1] != color)
+		return 0;
+
+	return 1;
+}
+
+int isAdjacent(int color, int xCor, int yCor)
+{
+	if (board[yCor - 1][xCor] == color)
+		return 1;
+	if (board[yCor + 1][xCor] == color)
+		return 1;
+	if (board[yCor][xCor - 1] == color)
+		return 1;
+	if (board[yCor][xCor + 1] == color)
+		return 1;
+
+	return 0;
+}
+
+int isValidMove(Player player, Piece piece, int blockAxisX, int blockAxisY)
+{
+	int boardYcor; 
+	int boardXcor; 
+	int blockXcor = 0;
+	int blockYcor = 0;
+	int isAtLeastOneCornerTouching = 0;
+
+	for (boardYcor = blockAxisY - 2; boardYcor < blockAxisY + 3; boardYcor++)
+	{
+		for (boardXcor = blockAxisX - 2; boardXcor < blockAxisX + 3; boardXcor++)
+		{
+			if (board[blockYcor][blockXcor] == BLOCK)
+			{
+				if (isEdge(boardYcor, boardXcor))
+				{
+					if (isCornerTouching(player.color, boardXcor, boardYcor))
+						isAtLeastOneCornerTouching = 1;
+				}
+				
+				if (isAdjacent(player.color, boardXcor, boardYcor))
+					return 0;
+			}
+
+			blockXcor++;
+		}
+		blockYcor++;
+		blockXcor = 0;
+	}
+
+	if (isAtLeastOneCornerTouching)
+		return 1;
+	else return 0;
+}
+
+void putBlock(Player *player, char key, int xCorChar, int yCorChar)
 {
 	int i, j;
 	int x = 0;
@@ -148,7 +269,7 @@ void putBlock(int (*board)[BOARD_SIZE], Player *player, char key, int xCorChar, 
 		for (j = axisX - 2; j < axisX + 3; j++)
 		{
 			if ((*player).playerBlock[blockKey].piece.shape[y][x] == BLOCK)
-				board[i][j] = (*player).color;
+				board[i][j] = BLOCK;
 
 			x++;
 		}
@@ -211,7 +332,7 @@ char getYcorInput()
 	return yCorUserInput;
 }
 
-void printScr(int (*board)[BOARD_SIZE])
+void printScr()
 {
 	int i, j;
 
@@ -251,6 +372,10 @@ void printScr(int (*board)[BOARD_SIZE])
 		{
 			switch (board[i][j])
 			{
+			case BLOCK:
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 2);
+				printf("бс");
+				break;
 			case ORANGE:
 				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6);
 				printf("бс");
@@ -275,15 +400,16 @@ void printScr(int (*board)[BOARD_SIZE])
 
 int main(void)
 {
-	Game game;
-	Piece F, I, L, N, P, T, U, V, W, X, Y, Z, i, j, o, s, t, v, three, two, one;
 	char blockKeyChar, xCorChar, yCorChar;
+	int move = 0;
 	int turn;
+	Player orange, violet;
+	Piece F, I, L, N, P, T, U, V, W, X, Y, Z, i, j, o, s, t, v, three, two, one;
+	
 
 	/* BLOCK INFO */
 
-	F.height = 3;
-	F.width = 3;
+	F.space = 5;
 	F.key = '0';
 	F.shape[1][2] = BLOCK;
 	F.shape[1][3] = BLOCK;
@@ -291,8 +417,7 @@ int main(void)
 	F.shape[2][2] = BLOCK;
 	F.shape[3][2] = BLOCK;
 
-	I.height = 5;
-	I.width = 1;
+	I.space = 5;
 	I.key = '1';
 	I.shape[0][2] = BLOCK;
 	I.shape[1][2] = BLOCK;
@@ -300,8 +425,7 @@ int main(void)
 	I.shape[3][2] = BLOCK;
 	I.shape[4][2] = BLOCK;
 
-	L.height = 4;
-	L.width = 2;
+	L.space = 5;
 	L.key = '2';
 	L.shape[0][2] = BLOCK;
 	L.shape[1][2] = BLOCK;
@@ -309,8 +433,7 @@ int main(void)
 	L.shape[3][2] = BLOCK;
 	L.shape[3][3] = BLOCK;
 
-	N.height = 4;
-	N.width = 2;
+	N.space = 5;
 	N.key = '3';
 	N.shape[1][2] = BLOCK;
 	N.shape[2][2] = BLOCK;
@@ -318,8 +441,7 @@ int main(void)
 	N.shape[3][2] = BLOCK;
 	N.shape[4][1] = BLOCK;
 
-	P.height = 3;
-	P.width = 2;
+	P.space = 5;
 	P.key = '4';
 	P.shape[2][2] = BLOCK;
 	P.shape[2][3] = BLOCK;
@@ -327,8 +449,7 @@ int main(void)
 	P.shape[3][3] = BLOCK;
 	P.shape[4][2] = BLOCK;
 
-	T.height = 3;
-	T.width = 3;
+	T.space = 5;
 	T.key = '5';
 	T.shape[2][1] = BLOCK;
 	T.shape[2][2] = BLOCK;
@@ -336,8 +457,7 @@ int main(void)
 	T.shape[3][2] = BLOCK;
 	T.shape[4][2] = BLOCK;
 
-	U.height = 2;
-	U.width = 3;
+	U.space = 5;
 	U.key = '6';
 	U.shape[1][1] = BLOCK;
 	U.shape[1][3] = BLOCK;
@@ -345,8 +465,7 @@ int main(void)
 	U.shape[2][2] = BLOCK;
 	U.shape[2][3] = BLOCK;
 
-	V.height = 3;
-	V.width = 3;
+	V.space = 5;
 	V.key = '7';
 	V.shape[0][2] = BLOCK;
 	V.shape[1][2] = BLOCK;
@@ -354,8 +473,7 @@ int main(void)
 	V.shape[2][3] = BLOCK;
 	V.shape[2][4] = BLOCK;
 
-	W.height = 3;
-	W.width = 3;
+	W.space = 5;
 	W.key = '8';
 	W.shape[1][1] = BLOCK;
 	W.shape[2][1] = BLOCK;
@@ -363,8 +481,7 @@ int main(void)
 	W.shape[3][2] = BLOCK;
 	W.shape[3][3] = BLOCK;
 
-	X.height = 3;
-	X.width = 3;
+	X.space = 5;
 	X.key = '9';
 	X.shape[1][2] = BLOCK;
 	X.shape[2][1] = BLOCK;
@@ -372,8 +489,7 @@ int main(void)
 	X.shape[2][3] = BLOCK;
 	X.shape[3][2] = BLOCK;
 
-	Y.height = 4;
-	Y.width = 2;
+	Y.space = 5;
 	Y.key = 'a';
 	Y.shape[1][2] = BLOCK;
 	Y.shape[2][1] = BLOCK;
@@ -381,8 +497,7 @@ int main(void)
 	Y.shape[3][2] = BLOCK;
 	Y.shape[4][2] = BLOCK;
 
-	Z.height = 3;
-	Z.width = 3;
+	Z.space = 5;
 	Z.key = 'b';
 	Z.shape[1][1] = BLOCK;
 	Z.shape[2][1] = BLOCK;
@@ -390,153 +505,146 @@ int main(void)
 	Z.shape[2][3] = BLOCK;
 	Z.shape[3][3] = BLOCK;
 
-	i.height = 4;
-	i.width = 1;
+	i.space = 4;
 	i.key = 'c';
 	i.shape[1][2] = BLOCK;
 	i.shape[2][2] = BLOCK;
 	i.shape[3][2] = BLOCK;
 	i.shape[4][2] = BLOCK;
 
-	j.height = 3;
-	j.width = 2;
+	j.space = 4;
 	j.key = 'd';
 	j.shape[0][2] = BLOCK;
 	j.shape[1][2] = BLOCK;
 	j.shape[2][1] = BLOCK;
 	j.shape[2][2] = BLOCK;
 
-	o.height = 2;
-	o.width = 2;
+	o.space = 4;
 	o.key = 'e';
 	o.shape[1][1] = BLOCK;
 	o.shape[1][2] = BLOCK;
 	o.shape[2][1] = BLOCK;
 	o.shape[2][2] = BLOCK;
 
-	s.height = 2;
-	s.width = 3;
+	s.space = 4;
 	s.key = 'f';
 	s.shape[1][2] = BLOCK;
 	s.shape[1][3] = BLOCK;
 	s.shape[2][1] = BLOCK;
 	s.shape[2][2] = BLOCK;
 
-	t.height = 2;
-	t.width = 3;
+	t.space = 4;
 	t.key = 'g';
 	t.shape[1][2] = BLOCK;
 	t.shape[2][1] = BLOCK;
 	t.shape[2][2] = BLOCK;
 	t.shape[2][3] = BLOCK;
 
-	v.height = 2;
-	v.width = 2;
+	v.space = 4;
 	v.key = 'h';
 	v.shape[1][2] = BLOCK;
 	v.shape[2][2] = BLOCK;
 	v.shape[2][3] = BLOCK;
 
-	three.height = 3;
-	three.width = 1;
+	three.space = 3;;
 	three.key = 'i';
 	three.shape[1][2] = BLOCK;
 	three.shape[2][2] = BLOCK;
 	three.shape[3][2] = BLOCK;
 
-	two.height = 2;
-	two.width = 1;
+	two.space = 2;
 	two.key = 'j';
 	two.shape[1][2] = BLOCK;
 	two.shape[2][2] = BLOCK;
 
-	one.height = 1;
-	one.width = 1;
+	one.space = 1;
 	one.key = 'k';
 	one.shape[2][2] = BLOCK;
 
-	game.move = 0;
+	move = 0;
 	
-	game.orange.color = 1;
-	game.violet.color = -1;
+	orange.color = ORANGE;
+	violet.color = VIOLET;
 	
-	game.orange.leftover = 89;
-	game.violet.leftover = 89;
+	orange.leftover = 89;
+	violet.leftover = 89;
 
 	for (int i = 0; i < 21; i++)
 	{
-		game.orange.playerBlock[i].key = 1;
-		game.violet.playerBlock[i].key = 1;
+		orange.playerBlock[i].key = 1;
+		violet.playerBlock[i].key = 1;
 	}
 
-	game.orange.playerBlock[0].piece = F;
-	game.orange.playerBlock[1].piece = I;
-	game.orange.playerBlock[2].piece = L;
-	game.orange.playerBlock[3].piece = N;
-	game.orange.playerBlock[4].piece = P;
-	game.orange.playerBlock[5].piece = T;
-	game.orange.playerBlock[6].piece = U;
-	game.orange.playerBlock[7].piece = V;
-	game.orange.playerBlock[8].piece = W;
-	game.orange.playerBlock[9].piece = X;
-	game.orange.playerBlock[10].piece = Y;
-	game.orange.playerBlock[11].piece = Z;
-	game.orange.playerBlock[12].piece = i;
-	game.orange.playerBlock[13].piece = j;
-	game.orange.playerBlock[14].piece = o;
-	game.orange.playerBlock[15].piece = s;
-	game.orange.playerBlock[16].piece = t;
-	game.orange.playerBlock[17].piece = v;
-	game.orange.playerBlock[18].piece = three;
-	game.orange.playerBlock[19].piece = two;
-	game.orange.playerBlock[20].piece = one;
+	orange.playerBlock[0].piece = F;
+	orange.playerBlock[1].piece = I;
+	orange.playerBlock[2].piece = L;
+	orange.playerBlock[3].piece = N;
+	orange.playerBlock[4].piece = P;
+	orange.playerBlock[5].piece = T;
+	orange.playerBlock[6].piece = U;
+	orange.playerBlock[7].piece = V;
+	orange.playerBlock[8].piece = W;
+	orange.playerBlock[9].piece = X;
+	orange.playerBlock[10].piece = Y;
+	orange.playerBlock[11].piece = Z;
+	orange.playerBlock[12].piece = i;
+	orange.playerBlock[13].piece = j;
+	orange.playerBlock[14].piece = o;
+	orange.playerBlock[15].piece = s;
+	orange.playerBlock[16].piece = t;
+	orange.playerBlock[17].piece = v;
+	orange.playerBlock[18].piece = three;
+	orange.playerBlock[19].piece = two;
+	orange.playerBlock[20].piece = one;
 
-	game.violet.playerBlock[0].piece = F;
-	game.violet.playerBlock[1].piece = I;
-	game.violet.playerBlock[2].piece = L;
-	game.violet.playerBlock[3].piece = N;
-	game.violet.playerBlock[4].piece = P;
-	game.violet.playerBlock[5].piece = T;
-	game.violet.playerBlock[6].piece = U;
-	game.violet.playerBlock[7].piece = V;
-	game.violet.playerBlock[8].piece = W;
-	game.violet.playerBlock[9].piece = X;
-	game.violet.playerBlock[10].piece = Y;
-	game.violet.playerBlock[11].piece = Z;
-	game.violet.playerBlock[12].piece = i;
-	game.violet.playerBlock[13].piece = j;
-	game.violet.playerBlock[14].piece = o;
-	game.violet.playerBlock[15].piece = s;
-	game.violet.playerBlock[16].piece = t;
-	game.violet.playerBlock[17].piece = v;
-	game.violet.playerBlock[18].piece = three;
-	game.violet.playerBlock[19].piece = two;
-	game.violet.playerBlock[20].piece = one;
+	violet.playerBlock[0].piece = F;
+	violet.playerBlock[1].piece = I;
+	violet.playerBlock[2].piece = L;
+	violet.playerBlock[3].piece = N;
+	violet.playerBlock[4].piece = P;
+	violet.playerBlock[5].piece = T;
+	violet.playerBlock[6].piece = U;
+	violet.playerBlock[7].piece = V;
+	violet.playerBlock[8].piece = W;
+	violet.playerBlock[9].piece = X;
+	violet.playerBlock[10].piece = Y;
+	violet.playerBlock[11].piece = Z;
+	violet.playerBlock[12].piece = i;
+	violet.playerBlock[13].piece = j;
+	violet.playerBlock[14].piece = o;
+	violet.playerBlock[15].piece = s;
+	violet.playerBlock[16].piece = t;
+	violet.playerBlock[17].piece = v;
+	violet.playerBlock[18].piece = three;
+	violet.playerBlock[19].piece = two;
+	violet.playerBlock[20].piece = one;
 
 	//Game process
 	turn = ORANGE;
-	clearBoard(game.board);
-	initGame(game.board);
+	clearBoard(board);
+	initGame(board);
 
 	while (1)
 	{
-		printScr(game.board);
+		printScr(board);
 
-		blockKeyChar = getBlockKeyInput(game.orange);
+		blockKeyChar = getBlockKeyInput(orange);
 		xCorChar = getXcorInput();
 		yCorChar = getYcorInput();
 
-		putBlock(game.board, &game.orange, blockKeyChar, xCorChar, yCorChar);
+		putBlock(&orange, blockKeyChar, xCorChar, yCorChar);
+
 		Sleep(700);
+		printScr();
 
-		printScr(game.board);
+		if (isInitialMove(orange))
+		{
+			if (isValidFirstMove(getLocation(xCorChar), getLocation(yCorChar)))
+				printf("Valid first move \n");
+			else printf("Invalid first move \n");
+		}
 
-		blockKeyChar = getBlockKeyInput(game.violet);
-		xCorChar = getXcorInput();
-		yCorChar = getYcorInput();
-
-		putBlock(game.board, &game.violet, blockKeyChar, xCorChar, yCorChar);
-		Sleep(700);
+		return 0; //temporary
 	}
 
 	return 0;
