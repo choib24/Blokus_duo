@@ -1,6 +1,9 @@
+#pragma warning(disable: 4996)
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<conio.h>
+#include<Windows.h>
 
 #define EMPTY 0
 #define BLOCK 1
@@ -37,119 +40,236 @@ typedef struct _GAME_INFO
 	int board[14][14];
 }Game;
 
+void clearBoard(int (*board)[BOARD_SIZE])
+{
+	int i, j;
+	for (i = 0; i < BOARD_SIZE; i++)
+	{
+		for (j = 0; j < BOARD_SIZE; j++)
+			board[i][j] = 0;
+	}
+}
+
+void initGame(int (*board)[BOARD_SIZE])
+{
+	board[4][4] = START;
+	board[9][9] = START;
+}
+
 int isValidBlockKey(char key)
 {
-	//need to implement
-	return 1;
-}
-
-void printScr(int (*board)[BOARD_SIZE])
-{
-	int i,j;
-
-	system("clear");
-
-	printf("--BLOCK KEY INFO--\n");
-	printf("F:0 I:1 L:2 N:3 P:4 T:5 U:6\n");
-	printf("V:7 W:8 X:9 Y:a Z:b i:c j:d\n");
-	printf("o:e s:f t:g v:h three:i two:j one:k\n\n");
-
-	printf("  1 2 3 4 5 6 7 8 9 A B C D E \n");
-
-	for(i=0; i<BOARD_SIZE; i++)
-	{
-		switch(i+1)
-		{
-			case 10:
-				printf("A ");
-				break;
-			case 11:
-				printf("B ");
-				break;
-			case 12:
-				printf("C ");
-				break;
-			case 13:
-				printf("D ");
-				break;
-			case 14:
-				printf("E ");
-				break;
-			default:
-				printf("%d ", i+1);
-				break;
-		}
-		
-		//NO spaces between blocks needed in windows. ONLY in terminal.
-		for(j=0; j<BOARD_SIZE; j++)
-		{
-			switch(board[i][j])
-			{
-				case ORANGE:
-					//set color to orange.
-					//in Windows, use SetConSoleTextAttribute(Windows.h)
-					printf("%c[1;33m",27);
-					printf("â—¼ï¸Ž ");
-					printf("%c[0m\n",27);
-					break;
-				case VIOLET:
-					printf("%c[1;35m",27);
-					printf("â—¼ï¸Ž ");
-					printf("%c[0m\n",27);
-					break;
-				case START:
-					printf("âœ© ");
-					break;
-				default:
-					printf("â˜ ");
-					break;
-			}
-		}
-		printf("\n");
-	}
-	printf("\n");
-}
-
-int isValidKey(char key)
-{
-	if((key>='0' && key<=9) || (key>='a' && key<='k'))
+	if ((key >= '0' && key <= '9') || (key >= 'a' && key <= 'k'))
 		return 1;
 	else return 0;
 }
 
 int isValidCoordinate(char coordinate)
 {
-	if((coordinate>='1' && coordinate<'9') || (coordinate>='A' && coordinate<='E'))
+	if ((coordinate >= '1' && coordinate <= '9') || (coordinate >= 'A' && coordinate <= 'E'))
 		return 1;
 	else return 0;
 }
 
-void getUserInput(Player p)
+int isAlreadyUsed(Player player, char blockKey)
 {
-	char blockKey, xCor, yCor;
+	int i=0;
 
-	printf("Enter the block key: ");
-	blockKey=getchar();
-	while(!isValidKey(blockKey))
+	while (i < 21)
 	{
-		printf("Invalid block key. Enter valid block key: ");
-		blockKey=getchar();
-	}
-	
-	printf("Enter x coordinate: ");
-	xCor=getchar();
-	while(!isValidCoordinate(xCor))
-	{
-		printf("Invalid x coordinate. Enter valid coordinate: ");
-		xCor=getchar();
+		if (player.playerBlock[i].piece.key == blockKey)
+			break;
+		else i++;
 	}
 
-	printf("Enter y coordinate: ");
-	yCor=getchar();
-	while(!isValidCoordinate(yCor))
+	if (player.playerBlock[i].key != 1)
+		return 1;
+	else return 0;
+}
+
+int isInitialMove(Player *player)
+{
+	if ((*player).leftover == 89)
+		return 1;
+	else return 0;
+}
+
+int findBlock(Player player, char key)
+{
+	int i;
+	for (i = 0; i < 21; i++)
 	{
-		printf("Invalid y coordinate. Enter valid coordinate: ");
-		yCor=getchar();
+		if (key == player.playerBlock[i].piece.key)
+			return i;
+	}
+
+	return -1; //failure
+}
+
+int getLocation(char coordinate)
+{
+	int coordinateInt;
+	switch (coordinate)
+	{
+	case 'A':
+		coordinateInt = 9;
+		break;
+	case 'B':
+		coordinateInt = 10;
+		break;
+	case 'C':
+		coordinateInt = 11;
+		break;
+	case 'D':
+		coordinateInt = 12;
+		break;
+	case 'E':
+		coordinateInt = 13;
+		break;
+	default:
+		coordinateInt = coordinate - '1';
+		break;
+	}
+
+	return coordinateInt;
+}
+
+void putBlock(int (*board)[BOARD_SIZE], Player *player, char key, int xCorChar, int yCorChar)
+{
+	int i, j;
+	int x = 0;
+	int y = 0;
+	int axisX = getLocation(xCorChar);
+	int axisY = getLocation(yCorChar);
+
+	const int blockKey = findBlock(*player, key);
+
+	for (i = axisY - 2; i < axisY + 3; i++)
+	{
+		for (j = axisX - 2; j < axisX + 3; j++)
+		{
+			if ((*player).playerBlock[blockKey].piece.shape[y][x] == BLOCK)
+				board[i][j] = (*player).color;
+
+			x++;
+		}
+		y++;
+		x = 0;
+	}
+}
+
+char getBlockKeyInput(Player player)
+{
+	char blockKeyUserInput;
+
+	printf("Enter block key: ");
+	blockKeyUserInput = getch();
+	while (!isValidBlockKey(blockKeyUserInput))
+	{
+		printf("\r%c: invalid block key. Enter valid block key: ", blockKeyUserInput);
+		blockKeyUserInput = getch();
+	}
+	while (isAlreadyUsed(player, blockKeyUserInput))
+	{
+		printf("\r%c: Already used block. Enter unused block key: ", blockKeyUserInput);
+		blockKeyUserInput = getch();
+	}
+	putch(blockKeyUserInput);
+	printf("\n");
+
+	return blockKeyUserInput;
+}
+
+char getXcorInput()
+{
+	char xCorUserInput;
+	printf("Enter X Coordinate: ");
+	xCorUserInput = getch();
+	while (!isValidCoordinate(xCorUserInput))
+	{
+		printf("\r%c: invalid coordinate. Enter valid coordinate: ", xCorUserInput);
+		xCorUserInput = getch();
+	}
+	putch(xCorUserInput);
+	printf("\n");
+
+	return xCorUserInput;
+}
+
+char getYcorInput()
+{
+	char yCorUserInput;
+	printf("Enter Y Coordinate: ");
+	yCorUserInput = getch();
+	while (!isValidCoordinate(yCorUserInput))
+	{
+		printf("\r%c: invalid coordinate. Enter valid coordinate: ", yCorUserInput);
+		yCorUserInput = getch();
+	}
+	putch(yCorUserInput);
+	printf("\n");
+
+	return yCorUserInput;
+}
+
+void printScr(int (*board)[BOARD_SIZE])
+{
+	int i, j;
+
+	system("cls");
+
+	printf("--BLOCK KEY INFO--\n");
+	printf("F:0 I:1 L:2 N:3 P:4 T:5 U:6\n");
+	printf("V:7 W:8 X:9 Y:a Z:b i:c j:d\n");
+	printf("o:e s:f t:g v:h three:i two:j one:k\n\n");
+	printf("    1 2 3 4 5 6 7 8 9 A B C D E \n");
+
+	for (i = 0; i < BOARD_SIZE; i++)
+	{
+		switch (i + 1)
+		{
+		case 10:
+			printf(" A ");
+			break;
+		case 11:
+			printf(" B ");
+			break;
+		case 12:
+			printf(" C ");
+			break;
+		case 13:
+			printf(" D ");
+			break;
+		case 14:
+			printf(" E ");
+			break;
+		default:
+			printf(" %d ", i + 1);
+			break;
+		}
+
+		for (j = 0; j < BOARD_SIZE; j++)
+		{
+			switch (board[i][j])
+			{
+			case ORANGE:
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6);
+				printf("¡á");
+				break;
+			case VIOLET:
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 5);
+				printf("¡á");
+				break;
+			case START:
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+				printf("¡Ú");
+				break;
+			default:
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+				printf("¡à");
+				break;
+			}
+		}
+		printf("\n");
 	}
 }
 
@@ -157,6 +277,8 @@ int main(void)
 {
 	Game game;
 	Piece F, I, L, N, P, T, U, V, W, X, Y, Z, i, j, o, s, t, v, three, two, one;
+	char blockKeyChar, xCorChar, yCorChar;
+	int turn;
 
 	/* BLOCK INFO */
 
@@ -175,8 +297,8 @@ int main(void)
 	I.shape[0][2] = BLOCK;
 	I.shape[1][2] = BLOCK;
 	I.shape[2][2] = BLOCK;
-	I.shape[2][3] = BLOCK;
-	I.shape[2][4] = BLOCK;
+	I.shape[3][2] = BLOCK;
+	I.shape[4][2] = BLOCK;
 
 	L.height = 4;
 	L.width = 2;
@@ -185,7 +307,7 @@ int main(void)
 	L.shape[1][2] = BLOCK;
 	L.shape[2][2] = BLOCK;
 	L.shape[3][2] = BLOCK;
-	L.shape[4][2] = BLOCK;
+	L.shape[3][3] = BLOCK;
 
 	N.height = 4;
 	N.width = 2;
@@ -335,14 +457,6 @@ int main(void)
 
 	game.move = 0;
 	
-	for (int i = 0; i < BOARD_SIZE; i++)
-	{
-		for (int j = 0; j < BOARD_SIZE; j++)
-			game.board[i][j] = 0;
-	}
-	game.board[4][4] = START;
-	game.board[9][9] = START;
-
 	game.orange.color = 1;
 	game.violet.color = -1;
 	
@@ -398,9 +512,32 @@ int main(void)
 	game.violet.playerBlock[18].piece = three;
 	game.violet.playerBlock[19].piece = two;
 	game.violet.playerBlock[20].piece = one;
-	
-	printScr(game.board);
-	getUserInput(game.orange);
+
+	//Game process
+	turn = ORANGE;
+	clearBoard(game.board);
+	initGame(game.board);
+
+	while (1)
+	{
+		printScr(game.board);
+
+		blockKeyChar = getBlockKeyInput(game.orange);
+		xCorChar = getXcorInput();
+		yCorChar = getYcorInput();
+
+		putBlock(game.board, &game.orange, blockKeyChar, xCorChar, yCorChar);
+		Sleep(700);
+
+		printScr(game.board);
+
+		blockKeyChar = getBlockKeyInput(game.violet);
+		xCorChar = getXcorInput();
+		yCorChar = getYcorInput();
+
+		putBlock(game.board, &game.violet, blockKeyChar, xCorChar, yCorChar);
+		Sleep(700);
+	}
 
 	return 0;
 }
