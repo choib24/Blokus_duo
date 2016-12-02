@@ -219,7 +219,7 @@ int isAdjacent(int color, int xCor, int yCor)
 	return 0;
 }
 
-int isValidMove(Player player, Piece piece, int blockAxisX, int blockAxisY)
+int isValidMove(Player player, int blockAxisX, int blockAxisY)
 {
 	int boardYcor; 
 	int boardXcor; 
@@ -254,27 +254,36 @@ int isValidMove(Player player, Piece piece, int blockAxisX, int blockAxisY)
 	else return 0;
 }
 
-void putBlock(Player *player, char key, int xCorChar, int yCorChar)
+int isOutofBounds(int coordinate)
 {
-	int i, j;
-	int x = 0;
-	int y = 0;
+	if (coordinate < 0 || coordinate >= BOARD_SIZE)
+		return 1;
+	else return 0;
+}
+
+void putBlock(Player player, char key, int xCorChar, int yCorChar)
+{
+	int boardYcor, boardXcor;
+	int blockXcor = 0;
+	int blockYcor = 0;
 	int axisX = getLocation(xCorChar);
 	int axisY = getLocation(yCorChar);
 
-	const int blockKey = findBlock(*player, key);
+	const int blockKey = findBlock(player, key);
 
-	for (i = axisY - 2; i < axisY + 3; i++)
+	for (boardYcor = axisY - 2; boardYcor < axisY + 3; boardYcor++)
 	{
-		for (j = axisX - 2; j < axisX + 3; j++)
+		for (boardXcor = axisX - 2; boardXcor < axisX + 3; boardXcor++)
 		{
-			if ((*player).playerBlock[blockKey].piece.shape[y][x] == BLOCK)
-				board[i][j] = BLOCK;
 
-			x++;
+			if (player.playerBlock[blockKey].piece.shape[blockYcor][blockXcor] == BLOCK)
+				board[boardYcor][boardXcor] = BLOCK;
+			
+			blockXcor++;
 		}
-		y++;
-		x = 0;
+
+		blockYcor++;
+		blockXcor = 0;
 	}
 }
 
@@ -393,6 +402,7 @@ void printScr()
 				printf("бр");
 				break;
 			}
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 		}
 		printf("\n");
 	}
@@ -632,7 +642,7 @@ int main(void)
 		xCorChar = getXcorInput();
 		yCorChar = getYcorInput();
 
-		putBlock(&orange, blockKeyChar, xCorChar, yCorChar);
+		putBlock(orange, blockKeyChar, xCorChar, yCorChar);
 
 		Sleep(700);
 		printScr();
