@@ -89,7 +89,17 @@ int isInitialMove(Player player)
 	else return 0;
 }
 
-int findBlock(Player player, char key)
+Piece findBlock(Player player, char key)
+{
+	int i;
+	for (i = 0; i < 21; i++)
+	{
+		if (key == player.playerBlock[i].piece.key)
+			return player.playerBlock[i].piece;
+	}
+}
+
+int findBlockIndex(Player player, char key)
 {
 	int i;
 	for (i = 0; i < 21; i++)
@@ -269,22 +279,89 @@ void putBlock(Player player, char key, int xCorChar, int yCorChar)
 	int axisX = getLocation(xCorChar);
 	int axisY = getLocation(yCorChar);
 
-	const int blockKey = findBlock(player, key);
+	const int blockKey = findBlockIndex(player, key);
 
 	for (boardYcor = axisY - 2; boardYcor < axisY + 3; boardYcor++)
 	{
 		for (boardXcor = axisX - 2; boardXcor < axisX + 3; boardXcor++)
 		{
 
-			if (player.playerBlock[blockKey].piece.shape[blockYcor][blockXcor] == BLOCK)
+			if (player.playerBlock[blockKey].piece.shape[blockYcor][blockXcor] == BLOCK && (board[boardYcor][boardXcor] == EMPTY || board[boardYcor][boardXcor] == START))
+			{
+				if (isOutofBounds(boardYcor) || isOutofBounds(boardXcor))
+				{
+					blockXcor++;
+					continue;
+				}
+
 				board[boardYcor][boardXcor] = BLOCK;
-			
+			}
+
 			blockXcor++;
 		}
 
 		blockYcor++;
 		blockXcor = 0;
 	}
+}
+
+void moveRight(int blockAxisX, int blockAxisY)
+{
+	
+}
+
+int getAdditionalAction(int status)
+{
+	char userAction;
+	int doItAgain = 1; //Enter(confirm): 0, otherwise 1
+
+	if (status == -1)
+		printf("Current move is invalid \n\n");
+	else printf("Current move is valid \n\n");
+
+	printf("¡æ:move right  ¡ç:move left ¡è:move up  ¡é:move down \n");
+	printf("z:mirror  x:flip  c:rotate clockwise  v:rotate counterclockwise \n\n");
+	printf("Choose your action. Press Enter to confirm your current move: ");
+	userAction = getch();
+	if (userAction == -32 || userAction == 0 || userAction == 0xE0) //for arrow keys
+		userAction = getch();
+	
+	//userAction switch-case. Currently temporary.
+	switch (userAction)
+	{
+	case 77: //right arrow
+		printf("move right");
+		break;
+	case 75: //left arrow
+		printf("move left");
+		break;
+	case 72: //up arrow
+		printf("move up");
+		break;
+	case 80: //down arrow
+		printf("move down");
+		break;
+	case 'z':
+		printf("mirror");
+		break;
+	case 'x':
+		printf("flip");
+		break;
+	case 'c':
+		printf("rotate clockwise");
+		break;
+	case 'v':
+		printf("rotate counterclockwise");
+		break;
+	case 13: //Enter
+		printf("\nConfirm current action \n");
+		doItAgain = 0;
+		break;
+	default:
+		break;
+	}
+
+	return doItAgain;
 }
 
 char getBlockKeyInput(Player player)
@@ -341,16 +418,16 @@ char getYcorInput()
 	return yCorUserInput;
 }
 
-void printScr()
+void printScr(int status)
 {
 	int i, j;
 
 	system("cls");
 
-	printf("--BLOCK KEY INFO--\n");
-	printf("F:0 I:1 L:2 N:3 P:4 T:5 U:6\n");
-	printf("V:7 W:8 X:9 Y:a Z:b i:c j:d\n");
-	printf("o:e s:f t:g v:h three:i two:j one:k\n\n");
+	printf("--BLOCK KEY INFO-- \n");
+	printf("F:0 I:1 L:2 N:3 P:4 T:5 U:6 \n");
+	printf("V:7 W:8 X:9 Y:a Z:b i:c j:d \n");
+	printf("o:e s:f t:g v:h three:i two:j one:k \n\n");
 	printf("    1 2 3 4 5 6 7 8 9 A B C D E \n");
 
 	for (i = 0; i < BOARD_SIZE; i++)
@@ -382,7 +459,9 @@ void printScr()
 			switch (board[i][j])
 			{
 			case BLOCK:
-				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 2);
+				if(status == -1)
+					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 4);
+				else SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 2);
 				printf("¡á");
 				break;
 			case ORANGE:
@@ -413,9 +492,9 @@ int main(void)
 	char blockKeyChar, xCorChar, yCorChar;
 	int move = 0;
 	int turn;
+	int status; //whether current move is valid or not
 	Player orange, violet;
 	Piece F, I, L, N, P, T, U, V, W, X, Y, Z, i, j, o, s, t, v, three, two, one;
-	
 
 	/* BLOCK INFO */
 
@@ -631,12 +710,13 @@ int main(void)
 
 	//Game process
 	turn = ORANGE;
-	clearBoard(board);
-	initGame(board);
+	status = 1;
+	clearBoard();
+	initGame();
 
 	while (1)
 	{
-		printScr(board);
+		printScr(status);
 
 		blockKeyChar = getBlockKeyInput(orange);
 		xCorChar = getXcorInput();
@@ -645,13 +725,22 @@ int main(void)
 		putBlock(orange, blockKeyChar, xCorChar, yCorChar);
 
 		Sleep(700);
-		printScr();
 
 		if (isInitialMove(orange))
 		{
-			if (isValidFirstMove(getLocation(xCorChar), getLocation(yCorChar)))
-				printf("Valid first move \n");
-			else printf("Invalid first move \n");
+			if (!isValidFirstMove(getLocation(xCorChar), getLocation(yCorChar)))
+				status = -1;
+		}
+		else if (!isValidMove(orange, getLocation(xCorChar), getLocation(yCorChar)))
+			status = -1;
+
+		while (1)
+		{
+			printScr(status);
+
+			if (!getAdditionalAction(status))
+				break;
+			else Sleep(700);
 		}
 
 		return 0; //temporary
