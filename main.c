@@ -12,7 +12,20 @@
 #define VIOLET 4
 #define BOARD_SIZE 14
 
-char board[24][24] = { EMPTY };
+int board[24][24] = { EMPTY };
+
+void setLeftSpacesZero(int(*board)[5])
+{
+	int i, j;
+	for (i = 0; i < 5; i++)
+	{
+		for (j = 0; j < 5; j++)
+		{
+			if (board[i][j] != BLOCK)
+				board[i][j] = 0;
+		}
+	}
+}
 
 typedef struct _BLOCK_INFO
 {
@@ -33,10 +46,16 @@ typedef struct _PLAYER_INFO
 	HashMap blockList[21];
 }Player;
 
-void printScr(int status)
+void printScr(int status, Player orange, Player violet)
 {
 	int i, j;
+	
 	system("cls");
+	printf("===BLOCK INDEX INFO=== \n");
+	printf("1:F 2:I 3:L 4:N 5:P 6:T 7:U \n");
+	printf("8:V 9:W 10:X 11:Y 12:Z 13:i 14:j \n");
+	printf("15:o 16:s 17:t 18:v 19:three 20:two 21:one \n\n");
+
 	printf("    1 2 3 4 5 6 7 8 9 A B C D E \n");
 	for (i = 0; i < BOARD_SIZE; i++)
 	{
@@ -90,9 +109,41 @@ void printScr(int status)
 			}
 			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 		}
+		
+		switch (i + 1)
+		{
+		case 10:
+			printf(" A ");
+			break;
+		case 11:
+			printf(" B ");
+			break;
+		case 12:
+			printf(" C ");
+			break;
+		case 13:
+			printf(" D ");
+			break;
+		case 14:
+			printf(" E ");
+			break;
+		default:
+			printf(" %d ", i + 1);
+			break;
+		}
 		printf("\n");
 	}
-	printf("\n");
+	printf("    1 2 3 4 5 6 7 8 9 A B C D E \n");
+
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6); //set color to orange
+	printf("ORANGE: ");
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7); //set color to white
+	printf("%d spaces left \n", orange.leftoverSpaces);
+
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 5); //set color to orange
+	printf("VIOLET: ");
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7); //set color to white
+	printf("%d spaces left \n", violet.leftoverSpaces);
 }
 
 int getLocation(char coordinate)
@@ -693,6 +744,7 @@ int main(void)
 	F.shape[2][1] = BLOCK;
 	F.shape[2][2] = BLOCK;
 	F.shape[3][2] = BLOCK;
+	setLeftSpacesZero(F.shape);
 
 	I.space = 5;
 	I.shape[0][2] = BLOCK;
@@ -700,6 +752,7 @@ int main(void)
 	I.shape[2][2] = BLOCK;
 	I.shape[3][2] = BLOCK;
 	I.shape[4][2] = BLOCK;
+	setLeftSpacesZero(I.shape);
 
 	L.space = 5;
 	L.shape[0][2] = BLOCK;
@@ -707,6 +760,7 @@ int main(void)
 	L.shape[2][2] = BLOCK;
 	L.shape[3][2] = BLOCK;
 	L.shape[3][3] = BLOCK;
+	setLeftSpacesZero(L.shape);
 
 	N.space = 5;
 	N.shape[1][2] = BLOCK;
@@ -714,6 +768,7 @@ int main(void)
 	N.shape[3][1] = BLOCK;
 	N.shape[3][2] = BLOCK;
 	N.shape[4][1] = BLOCK;
+	setLeftSpacesZero(N.shape);
 
 	P.space = 5;
 	P.shape[2][2] = BLOCK;
@@ -721,6 +776,7 @@ int main(void)
 	P.shape[3][2] = BLOCK;
 	P.shape[3][3] = BLOCK;
 	P.shape[4][2] = BLOCK;
+	setLeftSpacesZero(P.shape);
 
 	T.space = 5;
 	T.shape[2][1] = BLOCK;
@@ -728,6 +784,7 @@ int main(void)
 	T.shape[2][3] = BLOCK;
 	T.shape[3][2] = BLOCK;
 	T.shape[4][2] = BLOCK;
+	setLeftSpacesZero(T.shape);
 
 	U.space = 5;
 	U.shape[1][1] = BLOCK;
@@ -735,6 +792,7 @@ int main(void)
 	U.shape[2][1] = BLOCK;
 	U.shape[2][2] = BLOCK;
 	U.shape[2][3] = BLOCK;
+	setLeftSpacesZero(U.shape);
 
 	V.space = 5;
 	V.shape[0][2] = BLOCK;
@@ -742,6 +800,7 @@ int main(void)
 	V.shape[2][2] = BLOCK;
 	V.shape[2][3] = BLOCK;
 	V.shape[2][4] = BLOCK;
+	setLeftSpacesZero(V.shape);
 
 	W.space = 5;
 	W.shape[1][1] = BLOCK;
@@ -749,6 +808,7 @@ int main(void)
 	W.shape[2][2] = BLOCK;
 	W.shape[3][2] = BLOCK;
 	W.shape[3][3] = BLOCK;
+	setLeftSpacesZero(W.shape);
 
 	X.space = 5;
 	X.shape[1][2] = BLOCK;
@@ -756,6 +816,7 @@ int main(void)
 	X.shape[2][2] = BLOCK;
 	X.shape[2][3] = BLOCK;
 	X.shape[3][2] = BLOCK;
+	setLeftSpacesZero(X.shape);
 
 	Y.space = 5;
 	Y.shape[1][2] = BLOCK;
@@ -763,6 +824,7 @@ int main(void)
 	Y.shape[2][2] = BLOCK;
 	Y.shape[3][2] = BLOCK;
 	Y.shape[4][2] = BLOCK;
+	setLeftSpacesZero(Y.shape);
 
 	Z.space = 5;
 	Z.shape[1][1] = BLOCK;
@@ -770,53 +832,63 @@ int main(void)
 	Z.shape[2][2] = BLOCK;
 	Z.shape[2][3] = BLOCK;
 	Z.shape[3][3] = BLOCK;
+	setLeftSpacesZero(Z.shape);
 
 	i.space = 4;
 	i.shape[1][2] = BLOCK;
 	i.shape[2][2] = BLOCK;
 	i.shape[3][2] = BLOCK;
 	i.shape[4][2] = BLOCK;
+	setLeftSpacesZero(i.shape);
 
 	j.space = 4;
 	j.shape[0][2] = BLOCK;
 	j.shape[1][2] = BLOCK;
 	j.shape[2][1] = BLOCK;
 	j.shape[2][2] = BLOCK;
+	setLeftSpacesZero(j.shape);
 
 	o.space = 4;
 	o.shape[1][1] = BLOCK;
 	o.shape[1][2] = BLOCK;
 	o.shape[2][1] = BLOCK;
 	o.shape[2][2] = BLOCK;
+	setLeftSpacesZero(o.shape);
 
 	s.space = 4;
 	s.shape[1][2] = BLOCK;
 	s.shape[1][3] = BLOCK;
 	s.shape[2][1] = BLOCK;
 	s.shape[2][2] = BLOCK;
+	setLeftSpacesZero(s.shape);
 
 	t.space = 4;
 	t.shape[1][2] = BLOCK;
 	t.shape[2][1] = BLOCK;
 	t.shape[2][2] = BLOCK;
 	t.shape[2][3] = BLOCK;
+	setLeftSpacesZero(t.shape);
 
-	v.space = 4;
+	v.space = 3;
 	v.shape[1][2] = BLOCK;
 	v.shape[2][2] = BLOCK;
 	v.shape[2][3] = BLOCK;
+	setLeftSpacesZero(v.shape);
 
 	three.space = 3;;
 	three.shape[1][2] = BLOCK;
 	three.shape[2][2] = BLOCK;
 	three.shape[3][2] = BLOCK;
+	setLeftSpacesZero(three.shape);
 
 	two.space = 2;
 	two.shape[1][2] = BLOCK;
 	two.shape[2][2] = BLOCK;
+	setLeftSpacesZero(two.shape);
 
 	one.space = 1;
 	one.shape[2][2] = BLOCK;
+	setLeftSpacesZero(one.shape);
 
 	orange.color = ORANGE;
 	violet.color = VIOLET;
@@ -880,7 +952,7 @@ int main(void)
 	while (1)
 	{
 		doItAgain = 1;
-		printScr(status);
+		printScr(status, orange, violet);
 
 		//turn=orange
 		blockIndex = getBlockIndexInput();
@@ -910,7 +982,7 @@ int main(void)
 				status = 1;
 			else status = -1;
 
-			printScr(status);
+			printScr(status, orange, violet);
 
 			action = getAdditionalAction(status);
 
@@ -966,7 +1038,7 @@ int main(void)
 		}
 
 		doItAgain = 1;
-		printScr(status);
+		printScr(status, orange, violet);
 
 		//turn=violet
 		blockIndex = getBlockIndexInput();
@@ -996,7 +1068,7 @@ int main(void)
 				status = 1;
 			else status = -1;
 
-			printScr(status);
+			printScr(status, orange, violet);
 
 			action = getAdditionalAction(status);
 
