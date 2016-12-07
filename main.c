@@ -15,19 +15,6 @@
 int board[24][24] = { EMPTY };
 int move = 0;
 
-void setLeftSpacesZero(int(*board)[5])
-{
-	int i, j;
-	for (i = 0; i < 5; i++)
-	{
-		for (j = 0; j < 5; j++)
-		{
-			if (board[i][j] != BLOCK)
-				board[i][j] = 0;
-		}
-	}
-}
-
 typedef struct _BLOCK_INFO
 {
 	int space;
@@ -42,10 +29,52 @@ typedef struct _HASHMAP
 
 typedef struct _PLAYER_INFO
 {
+	int isOver; //if 1, player cannot place blocks anymore
 	char color; //orange or violet
 	int leftoverSpaces; //initial value is 89
 	HashMap blockList[21];
 }Player;
+
+void setLeftSpacesZero(int(*board)[5])
+{
+	int i, j;
+	for (i = 0; i < 5; i++)
+	{
+		for (j = 0; j < 5; j++)
+		{
+			if (board[i][j] != BLOCK)
+				board[i][j] = 0;
+		}
+	}
+}
+
+void clearBoard()
+{
+	int boardX, boardY;
+	for (boardX = 0; boardX < 24; boardX++)
+	{
+		for (boardY = 0; boardY < 24; boardY++)
+			board[boardY][boardX] = EMPTY;
+	}
+}
+
+void initGame(Player *p1, Player *p2)
+{
+	clearBoard();
+
+	int i;
+	
+	(*p1).isOver = 0;
+	(*p2).isOver = 0;
+	(*p1).leftoverSpaces = 89;
+	(*p2).leftoverSpaces = 89;
+
+	for (i = 0; i < 21; i++)
+	{
+		(*p1).blockList[i].isAvailable = 1;
+		(*p2).blockList[i].isAvailable = 1;
+	}
+}
 
 void printScr(int status, int move, Player orange, Player violet)
 {
@@ -90,22 +119,22 @@ void printScr(int status, int move, Player orange, Player violet)
 				if (status == -1) //Invalid move
 					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 4);
 				else SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 2);
-				printf("â– ");
+				printf("¡á");
 				break;
 			case ORANGE:
 				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6);
-				printf("â– ");
+				printf("¡á");
 				break;
 			case VIOLET:
 				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 5);
-				printf("â– ");
+				printf("¡á");
 				break;
 			default:
 				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 				//start point
 				if ((i + 5 == 9 && j + 5 == 9) || (i + 5 == 14 && j + 5 == 14))
-					printf("â˜…");
-				else printf("â˜");
+					printf("¡Ú");
+				else printf("¡à");
 				break;
 			}
 			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
@@ -205,7 +234,7 @@ int getLocation(char coordinate)
 
 int isValidBlockIndex(int blockIndex)
 {
-	if (blockIndex > 0 && blockIndex <= 21)
+	if (blockIndex >= 0 && blockIndex <= 21)
 		return 1;
 	else return 0;
 }
@@ -220,7 +249,7 @@ int isAlreadyUsed(Player player, int index)
 int getBlockIndexInput()
 {
 	int input;
-	printf("Enter block index: ");
+	printf("Enter block index. Enter 0 to skip your turn: ");
 	scanf("%d", &input);
 
 	while (!isValidBlockIndex(input))
@@ -430,7 +459,7 @@ char getAdditionalAction(int status)
 		printf("Current move is invalid \n\n");
 	else printf("Current move is valid \n\n");
 
-	printf("â†’:move right  â†:move left  â†‘:move up  â†“:move down \n");
+	printf("¡æ:move right  ¡ç:move left  ¡è:move up  ¡é:move down \n");
 	printf("z:mirror  x:flip  c:rotate clockwise  v:rotate counterclockwise \n\n");
 	printf("Choose your action. Press Enter to confirm your current move: ");
 	userAction = getch();
@@ -754,6 +783,7 @@ int main(void)
 	int doItAgain = 1; //additional action
 	int playAgain = 1; //game
 	int turn;
+	int isEnd = 0;
 
 	/* BLOCK AND PLAYER INFO */
 	F.space = 5;
@@ -967,101 +997,132 @@ int main(void)
 	status = 1;
 	turn = -1;
 	//Game process
-	while (1)
+	while (playAgain)
 	{
-		turn *= -1;
-		
-		if (turn == 1)
-			isPlaying = &orange;
-		else isPlaying = &violet;
+		move = 0;
+		turn = -1;
+		status = 1;
 
-		doItAgain = 1;
-		printScr(status, move, orange, violet);
-
-		blockIndex = getBlockIndexInput();
-		while (isAlreadyUsed(*isPlaying, blockIndex))
+		while (1)
 		{
-			printf("Block already used. Select unused block \n");
-			blockIndex = getBlockIndexInput();
-		}
-		xCoordinate = getXCoordinateInput();
-		yCoordinate = getYCoordinateInput();
+			if (orange.isOver == 1 && violet.isOver == 1)
+				break;
 
-		xCoordinateInt = getLocation(xCoordinate);
-		yCoordinateInt = getLocation(yCoordinate);
+			turn *= -1;
 
-		putBlock(isPlaying->blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
-		Sleep(700);
+			if (turn == 1)
+				isPlaying = &orange;
+			else isPlaying = &violet;
 
-		while (doItAgain)
-		{
-			if (!isPlaceable(isPlaying->blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt))
-				status = -1;
-			else if (isInitialMove(*isPlaying))
-			{
-				if (isValidFirstMove(xCoordinateInt, yCoordinateInt))
-					status = 1;
-				else status = -1;
-			}
-			else if (isValidMove(*isPlaying, xCoordinateInt, yCoordinateInt))
-				status = 1;
-			else status = -1;
-
+			doItAgain = 1;
 			printScr(status, move, orange, violet);
 
-			action = getAdditionalAction(status);
-
-			switch (action)
+			blockIndex = getBlockIndexInput();
+			if (blockIndex == 0)
 			{
-			case 77: //right arrow
-				printf("move right");
-				moveRight((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
-				break;
-			case 75: //left arrow
-				printf("move left");
-				moveLeft((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
-				break;
-			case 80: //down arrow
-				printf("move down");
-				moveDown((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
-				break;
-			case 72: //up arrow
-				printf("move up");
-				moveUp((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
-				break;
-			case 'z':
-				printf("mirror");
-				mirror(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
-				break;
-			case 'x':
-				printf("flip");
-				flip(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
-				break;
-			case 'c':
-				printf("rotate clockwise");
-				rotateClockwise(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
-				break;
-			case 'v':
-				printf("rotate counterclockwise");
-				rotateCounterClockwise(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
-				break;
-			case 13: //enter
-				printf("confirm current move");
-				if (canConfirm(status))
-				{
-					confirm(isPlaying, blockIndex, xCoordinateInt, yCoordinateInt);
-					doItAgain = 0;
-				}
-				else printf("\nCurrent move is Invalid. Cannot confirm \n");
-
-				break;
-			default:
-				printf("\nInvalid action");
-				break;
+				printf("Player cannot place block. Turn skipped \n");
+				(*isPlaying).isOver = 1;
+				move++;
+				Sleep(700);
+				continue;
 			}
-			Sleep(700);
-		}
-	}
+			while (isAlreadyUsed(*isPlaying, blockIndex - 1))
+			{
+				printf("Block already used. Select unused block \n");
+				blockIndex = getBlockIndexInput();
+			}
+			xCoordinate = getXCoordinateInput();
+			yCoordinate = getYCoordinateInput();
 
+			xCoordinateInt = getLocation(xCoordinate);
+			yCoordinateInt = getLocation(yCoordinate);
+
+			putBlock(isPlaying->blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
+			Sleep(700);
+
+			while (doItAgain)
+			{
+				if (!isPlaceable(isPlaying->blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt))
+					status = -1;
+				else if (isInitialMove(*isPlaying))
+				{
+					if (isValidFirstMove(xCoordinateInt, yCoordinateInt))
+						status = 1;
+					else status = -1;
+				}
+				else if (isValidMove(*isPlaying, xCoordinateInt, yCoordinateInt))
+					status = 1;
+				else status = -1;
+
+				printScr(status, move, orange, violet);
+
+				action = getAdditionalAction(status);
+
+				switch (action)
+				{
+				case 77: //right arrow
+					printf("move right");
+					moveRight((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
+					break;
+				case 75: //left arrow
+					printf("move left");
+					moveLeft((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
+					break;
+				case 80: //down arrow
+					printf("move down");
+					moveDown((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
+					break;
+				case 72: //up arrow
+					printf("move up");
+					moveUp((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
+					break;
+				case 'z':
+					printf("mirror");
+					mirror(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
+					break;
+				case 'x':
+					printf("flip");
+					flip(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
+					break;
+				case 'c':
+					printf("rotate clockwise");
+					rotateClockwise(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
+					break;
+				case 'v':
+					printf("rotate counterclockwise");
+					rotateCounterClockwise(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
+					break;
+				case 13: //enter
+					printf("confirm current move");
+					if (canConfirm(status))
+					{
+						confirm(isPlaying, blockIndex - 1, xCoordinateInt, yCoordinateInt);
+						doItAgain = 0;
+					}
+					else printf("\nCurrent move is Invalid. Cannot confirm \n");
+
+					break;
+				default:
+					printf("\nInvalid action");
+					break;
+				}
+				Sleep(700);
+			}
+		}
+
+		printScr(status, move, orange, violet);
+		if (orange.leftoverSpaces < violet.leftoverSpaces)
+			printf("Orange Win! \n");
+		else printf("Violet win! \n");
+
+		printf("Want to play again? Enter 1 if yes, anything else if no: ");
+		scanf("%d", &playAgain);
+		if (playAgain == 1)
+		{
+			initGame(&orange, &violet);
+		}
+		else break;
+	}
+	
 	return 0;
 }
