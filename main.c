@@ -90,22 +90,22 @@ void printScr(int status, int move, Player orange, Player violet)
 				if (status == -1) //Invalid move
 					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 4);
 				else SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 2);
-				printf("°·");
+				printf("‚ñ†");
 				break;
 			case ORANGE:
 				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6);
-				printf("°·");
+				printf("‚ñ†");
 				break;
 			case VIOLET:
 				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 5);
-				printf("°·");
+				printf("‚ñ†");
 				break;
 			default:
 				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 				//start point
 				if ((i + 5 == 9 && j + 5 == 9) || (i + 5 == 14 && j + 5 == 14))
-					printf("°⁄");
-				else printf("°‡");
+					printf("‚òÖ");
+				else printf("‚òê");
 				break;
 			}
 			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
@@ -430,7 +430,7 @@ char getAdditionalAction(int status)
 		printf("Current move is invalid \n\n");
 	else printf("Current move is valid \n\n");
 
-	printf("°Ê:move right  °Á:move left  °Ë:move up  °È:move down \n");
+	printf("‚Üí:move right  ‚Üê:move left  ‚Üë:move up  ‚Üì:move down \n");
 	printf("z:mirror  x:flip  c:rotate clockwise  v:rotate counterclockwise \n\n");
 	printf("Choose your action. Press Enter to confirm your current move: ");
 	userAction = getch();
