@@ -1,3 +1,6 @@
+#ifndef GAME_H
+#define GAME_H
+
 #pragma warning(disable:4996)
 #include<stdio.h>
 #include<string.h>
@@ -39,30 +42,5 @@ void setLeftSpacesZero(int(*board)[5]);
 void clearBoard();
 void initGame(Player *p1, Player *p2);
 void printScr(int status, int move, Player orange, Player violet);
-int getLocation(char coordinate);
-int isValidBlockIndex(int blockIndex);
-int isAlreadyUsed(Player player, int index);
-int getBlockIndexInput();
-int isValidCoordinate(char coordinate);
-char getXCoordinateInput();
-char getYCoordinateInput();
-void putBlock(Block block, int xCor, int yCor);
-int findNearestStartingPoint(int blockAxisX, int blockAxisY);
-int isInitialMove(Player player);
-int isValidFirstMove(int blockAxisX, int blockAxisY);
-int isPlaceable(Block block, int blockAxisX, int blockAxisY);
-int isEdge(int xCor, int yCor);
-int isCornerTouching(int color, int xCor, int yCor);
-int isAdjacent(int color, int xCor, int yCor);
-int isValidMove(Player player, int blockAxisX, int blockAxisY);
-char getAdditionalAction(int status);
-void moveRight(Block block, int *blockAxisX, int *blockAxisY);
-void moveLeft(Block block, int *blockAxisX, int *blockAxisY);
-void moveDown(Block block, int *blockAxisX, int *blockAxisY);
-void moveUp(Block block, int *blockAxisX, int *blockAxisY);
-void mirror(Block *block, int blockAxisX, int blockAxisY);
-void flip(Block *block, int blockAxisX, int blockAxisY);
-void rotateClockwise(Block *block, int blockAxisX, int blockAxisY);
-void rotateCounterClockwise(Block *block, int blockAxisX, int blockAxisY);
-int canConfirm(int status);
-void confirm(Player *player, int blockIndex, int blockAxisX, int blockAxisY);
+
+#endif

@@ -42,20 +42,6 @@ int getLocation(char coordinate)
 	return location;
 }
 
-int isValidBlockIndex(int blockIndex)
-{
-	if (blockIndex >= 0 && blockIndex <= 21)
-		return 1;
-	else return 0;
-}
-
-int isAlreadyUsed(Player player, int index)
-{
-	if (player.blockList[index].isAvailable != 1)
-		return 1;
-	else return 0;
-}
-
 int getBlockIndexInput()
 {
 	int input;
@@ -69,13 +55,6 @@ int getBlockIndexInput()
 	}
 
 	return input;
-}
-
-int isValidCoordinate(char coordinate)
-{
-	if ((coordinate >= '1' && coordinate <= '9') || (coordinate >= 'A' && coordinate <= 'E') || (coordinate >= 'a' && coordinate <= 'e'))
-		return 1;
-	else return 0;
 }
 
 char getXCoordinateInput()
@@ -114,51 +93,6 @@ char getYCoordinateInput()
 	return input;
 }
 
-int isInitialMove(Player player)
-{
-	if (player.leftoverSpaces == 89)
-		return 1;
-	else return 0;
-}
-
-int isValidFirstMove(int blockAxisX, int blockAxisY)
-{
-	int startPoint = findNearestStartingPoint(blockAxisX, blockAxisY);
-
-	if (board[startPoint][startPoint] != BLOCK)
-		return 0;
-	else return 1;
-}
-
-int isValidMove(Player player, int blockAxisX, int blockAxisY)
-{
-	int boardYcor;
-	int boardXcor;
-	int isAtLeastOneCornerTouching = 0;
-
-	for (boardYcor = blockAxisY - 2; boardYcor < blockAxisY + 3; boardYcor++)
-	{
-		for (boardXcor = blockAxisX - 2; boardXcor < blockAxisX + 3; boardXcor++)
-		{
-			if (board[boardYcor][boardXcor] == BLOCK)
-			{
-				if (isEdge(boardYcor, boardXcor))
-				{
-					if (isCornerTouching(player.color, boardXcor, boardYcor))
-						isAtLeastOneCornerTouching = 1;
-				}
-
-				if (isAdjacent(player.color, boardXcor, boardYcor))
-					return 0;
-			}
-		}
-	}
-
-	if (isAtLeastOneCornerTouching)
-		return 1;
-	else return 0;
-}
-
 char getAdditionalAction(int status)
 {
 	char userAction;
@@ -176,13 +110,6 @@ char getAdditionalAction(int status)
 		userAction = getch();
 
 	return userAction;
-}
-
-int canConfirm(int status)
-{
-	if (status == 1)
-		return 1;
-	else return 0;
 }
 
 void confirm(Player *player, int blockIndex, int blockAxisX, int blockAxisY)

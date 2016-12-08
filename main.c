@@ -1,4 +1,8 @@
 #include "game.h"
+#include "player.h"
+#include "check.h"
+#include "block.h"
+#include "file.h"
 
 int main(void)
 {
@@ -232,6 +236,7 @@ int main(void)
 	//Game process
 	while (playAgain)
 	{
+		fp = NULL;
 		move = 0;
 		turn = -1;
 		status = 1;
@@ -341,6 +346,8 @@ int main(void)
 				}
 				Sleep(700);
 			}
+
+			writeReplayFile(fp);
 		}
 
 		printScr(status, move, orange, violet);
