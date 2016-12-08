@@ -9,17 +9,15 @@ int main(void)
 	Player orange, violet;
 	Player *isPlaying;
 	Block F, I, L, N, P, T, U, V, W, X, Y, Z, i, j, o, s, t, v, three, two, one;
-	int status; //1: valid -1: error
+	int mode;
 	int blockIndex;
 	char xCoordinate;
 	char yCoordinate;
 	int xCoordinateInt;
 	int yCoordinateInt;
 	char action;
-	int doItAgain = 1; //additional action
+	int keepGetAction = 1; //additional action
 	int playAgain = 1; //game
-	int turn;
-	int isEnd = 0;
 
 	/* BLOCK AND PLAYER INFO */
 	F.space = 5;
@@ -177,15 +175,6 @@ int main(void)
 	orange.color = ORANGE;
 	violet.color = VIOLET;
 
-	orange.leftoverSpaces = 89;
-	violet.leftoverSpaces = 89;
-
-	for (int i = 0; i < 21; i++)
-	{
-		orange.blockList[i].isAvailable = 1;
-		violet.blockList[i].isAvailable = 1;
-	}
-
 	orange.blockList[0].block = F;
 	orange.blockList[1].block = I;
 	orange.blockList[2].block = L;
@@ -230,139 +219,136 @@ int main(void)
 	violet.blockList[19].block = two;
 	violet.blockList[20].block = one;
 
-	clearBoard();
-	status = 1;
-	turn = -1;
-	//Game process
-	while (playAgain)
+	while (1)
 	{
-		fp = NULL;
-		move = 0;
-		turn = -1;
-		status = 1;
+		mode = selectMode();
 
-		while (1)
+		if (mode == 1) //game playing mode
 		{
-			if (orange.isOver == 1 && violet.isOver == 1)
-				break;
-
-			turn *= -1;
-
-			if (turn == 1)
-				isPlaying = &orange;
-			else isPlaying = &violet;
-
-			doItAgain = 1;
-			printScr(status, move, orange, violet);
-
-			blockIndex = getBlockIndexInput();
-			if (blockIndex == 0)
+			while (1)
 			{
-				printf("Player cannot place block. Turn skipped \n");
-				(*isPlaying).isOver = 1;
-				move++;
-				Sleep(700);
-				continue;
-			}
-			while (isAlreadyUsed(*isPlaying, blockIndex - 1))
-			{
-				printf("Block already used. Select unused block \n");
-				blockIndex = getBlockIndexInput();
-			}
-			xCoordinate = getXCoordinateInput();
-			yCoordinate = getYCoordinateInput();
+				initGame(&orange, &violet);
+				createReplayFile(fp);
 
-			xCoordinateInt = getLocation(xCoordinate);
-			yCoordinateInt = getLocation(yCoordinate);
-
-			putBlock(isPlaying->blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
-			Sleep(700);
-
-			while (doItAgain)
-			{
-				if (!isPlaceable(isPlaying->blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt))
-					status = -1;
-				else if (isInitialMove(*isPlaying))
+				//game-playing phase
+				while (1)
 				{
-					if (isValidFirstMove(xCoordinateInt, yCoordinateInt))
-						status = 1;
-					else status = -1;
-				}
-				else if (isValidMove(*isPlaying, xCoordinateInt, yCoordinateInt))
-					status = 1;
-				else status = -1;
+					if (orange.isOver == 1 && violet.isOver == 1)
+						break;
 
-				printScr(status, move, orange, violet);
+					if (turn == ORANGE)
+						isPlaying = &orange;
+					else isPlaying = &violet;
+					
+					keepGetAction = 1;
 
-				action = getAdditionalAction(status);
+					printScr(orange, violet);
 
-				switch (action)
-				{
-				case 77: //right arrow
-					printf("move right");
-					moveRight((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
-					break;
-				case 75: //left arrow
-					printf("move left");
-					moveLeft((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
-					break;
-				case 80: //down arrow
-					printf("move down");
-					moveDown((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
-					break;
-				case 72: //up arrow
-					printf("move up");
-					moveUp((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
-					break;
-				case 'z':
-					printf("mirror");
-					mirror(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
-					break;
-				case 'x':
-					printf("flip");
-					flip(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
-					break;
-				case 'c':
-					printf("rotate clockwise");
-					rotateClockwise(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
-					break;
-				case 'v':
-					printf("rotate counterclockwise");
-					rotateCounterClockwise(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
-					break;
-				case 13: //enter
-					printf("confirm current move");
-					if (canConfirm(status))
+					blockIndex = getBlockIndexInput();
+					if (blockIndex == 0)
 					{
-						confirm(isPlaying, blockIndex - 1, xCoordinateInt, yCoordinateInt);
-						doItAgain = 0;
+						printf("Player cannot place block. Turn skipped \n");
+						(*isPlaying).isOver = 1;
+						move++;
+						turn *= -1;
+						continue;
 					}
-					else printf("\nCurrent move is Invalid. Cannot confirm \n");
+					while (isAlreadyUsed(*isPlaying, blockIndex - 1))
+					{
+						printf("Block already used. Select unused block \n");
+						blockIndex = getBlockIndexInput();
+					}
+					xCoordinate = getXCoordinateInput();
+					yCoordinate = getYCoordinateInput();
+					xCoordinateInt = getLocation(xCoordinate);
+					yCoordinateInt = getLocation(yCoordinate);
 
-					break;
-				default:
-					printf("\nInvalid action");
+					putBlock(isPlaying->blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
+
+					while (keepGetAction)
+					{
+						if (!isPlaceable(isPlaying->blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt))
+							status = -1;
+						else if (isInitialMove(*isPlaying))
+						{
+							if (isValidFirstMove(xCoordinateInt, yCoordinateInt))
+								status = 1;
+							else status = -1;
+						}
+						else if (isValidMove(*isPlaying, xCoordinateInt, yCoordinateInt))
+							status = 1;
+						else status = -1;
+
+						printScr(orange, violet);
+
+						action = getAdditionalAction(status);
+						switch (action)
+						{
+						case 77: //right arrow
+							printf("move right");
+							moveRight((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
+							break;
+						case 75: //left arrow
+							printf("move left");
+							moveLeft((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
+							break;
+						case 80: //down arrow
+							printf("move down");
+							moveDown((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
+							break;
+						case 72: //up arrow
+							printf("move up");
+							moveUp((*isPlaying).blockList[blockIndex - 1].block, &xCoordinateInt, &yCoordinateInt);
+							break;
+						case 'z':
+							printf("mirror");
+							mirror(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
+							break;
+						case 'x':
+							printf("flip");
+							flip(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
+							break;
+						case 'c':
+							printf("rotate clockwise");
+							rotateClockwise(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
+							break;
+						case 'v':
+							printf("rotate counterclockwise");
+							rotateCounterClockwise(&(*isPlaying).blockList[blockIndex - 1].block, xCoordinateInt, yCoordinateInt);
+							break;
+						case 13: //enter
+							printf("confirm current move");
+							if (canConfirm(status))
+							{
+								confirm(isPlaying, blockIndex - 1, xCoordinateInt, yCoordinateInt);
+								keepGetAction = 0;
+							}
+							else printf("\nCurrent move is Invalid. Cannot confirm \n");
+							break;
+						default:
+							printf("\nInvalid action");
+							break;
+						}
+					}
+
+					updateReplayFile(fp);
+					turn *= -1;
+				}
+
+				//end of game
+				if (endGame(orange, violet) != 1)
+				{
+					system("cls"); //temporary
 					break;
 				}
-				Sleep(700);
 			}
-
-			writeReplayFile(fp);
 		}
-
-		printScr(status, move, orange, violet);
-		if (orange.leftoverSpaces < violet.leftoverSpaces)
-			printf("Orange Win! \n");
-		else printf("Violet win! \n");
-
-		printf("Want to play again? Enter 1 if yes, anything else if no: ");
-		scanf("%d", &playAgain);
-		if (playAgain == 1)
+		else if (mode == 2) //replay mode
 		{
-			initGame(&orange, &violet);
+			printFromFile(fp);
 		}
 		else break;
 	}
-	
+
 	return 0;
 }

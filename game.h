@@ -17,6 +17,8 @@
 
 int board[24][24];
 int move;
+int status; //1: valid -1: error
+int turn;
 
 typedef struct _BLOCK_INFO
 {
@@ -38,9 +40,11 @@ typedef struct _PLAYER_INFO
 	HashMap blockList[21];
 }Player;
 
+int selectMode();
 void setLeftSpacesZero(int(*board)[5]);
 void clearBoard();
-void initGame(Player *p1, Player *p2);
-void printScr(int status, int move, Player orange, Player violet);
+void initGame(Player *orange, Player *violet);
+void printScr(Player orange, Player violet);
+int endGame(Player orange, Player violet);
 
 #endif

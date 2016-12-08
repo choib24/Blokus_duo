@@ -1,4 +1,4 @@
-#include "game.h"
+#include "player.h"
 
 int getLocation(char coordinate)
 {
@@ -93,7 +93,7 @@ char getYCoordinateInput()
 	return input;
 }
 
-char getAdditionalAction(int status)
+char getAdditionalAction()
 {
 	char userAction;
 	int doItAgain = 1; //Enter(confirm): 0, otherwise 1

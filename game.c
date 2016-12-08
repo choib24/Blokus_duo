@@ -1,5 +1,15 @@
 #include "game.h"
 
+int selectMode()
+{
+	int userSelectedMode;
+	printf("1. Play game 2. Replay last played game \n");
+	printf("Enter mode. Enter anything else to exit: ");
+	scanf("%d", &userSelectedMode);
+
+	return userSelectedMode;
+}
+
 void setLeftSpacesZero(int(*board)[5])
 {
 	int i, j;
@@ -23,28 +33,32 @@ void clearBoard()
 	}
 }
 
-void initGame(Player *p1, Player *p2)
+void initGame(Player *orange, Player *violet)
 {
-	clearBoard();
-
 	int i;
 
-	(*p1).isOver = 0;
-	(*p2).isOver = 0;
-	(*p1).leftoverSpaces = 89;
-	(*p2).leftoverSpaces = 89;
+	clearBoard();
+	status = 1;
+	move = 0;
+	turn = ORANGE;
+
+	(*orange).isOver = 0;
+	(*violet).isOver = 0;
+	(*orange).leftoverSpaces = 89;
+	(*violet).leftoverSpaces = 89;
 
 	for (i = 0; i < 21; i++)
 	{
-		(*p1).blockList[i].isAvailable = 1;
-		(*p2).blockList[i].isAvailable = 1;
+		(*orange).blockList[i].isAvailable = 1;
+		(*violet).blockList[i].isAvailable = 1;
 	}
 }
 
-void printScr(int status, int move, Player orange, Player violet)
+void printScr(Player orange, Player violet)
 {
 	int i, j;
 
+	Sleep(700);
 	system("cls");
 	printf("===BLOCK INDEX INFO=== \n");
 	printf("1:F 2:I 3:L 4:N 5:P 6:T 7:U \n");
@@ -153,4 +167,29 @@ void printScr(int status, int move, Player orange, Player violet)
 	printf("VIOLET: ");
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7); //set color to white
 	printf("%d spaces left \n\n", violet.leftoverSpaces);
+}
+
+int determineWinner(int orangeLeftover, int violetLeftover)
+{
+	if (orangeLeftover < violetLeftover)
+		return ORANGE;
+	else return VIOLET;
+}
+
+int askPlayAgain()
+{
+	int userPlayAgainInput;
+	printf("Want to play again? Enter 1 if yes, anything else if no: ");
+	scanf("%d", &userPlayAgainInput);
+	return userPlayAgainInput;
+}
+
+int endGame(Player orange, Player violet)
+{
+	printScr(orange, violet);
+	if (determineWinner(orange.leftoverSpaces, violet.leftoverSpaces))
+		printf("Orange win! \n");
+	else printf("Violet win! \n");
+
+	return askPlayAgain();
 }

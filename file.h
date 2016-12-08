@@ -5,6 +5,8 @@
 
 FILE *fp;
 
-void writeReplayFile(FILE *fp);
+void createReplayFile(FILE *fp);
+void updateReplayFile(FILE *fp);
+void printFromFile(FILE *fp);
 
 #endif

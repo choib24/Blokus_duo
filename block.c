@@ -1,4 +1,4 @@
-#include "game.h"
+#include "block.h"
 
 void putBlock(Block block, int xCor, int yCor)
 {
@@ -18,16 +18,6 @@ void putBlock(Block block, int xCor, int yCor)
 		blockY++;
 		blockX = 0;
 	}
-}
-
-int findNearestStartingPoint(int blockAxisX, int blockAxisY)
-{
-	double distance1Exp = pow((blockAxisX - 9), 2) + pow((blockAxisY - 9), 2);
-	double distance2Exp = pow((blockAxisX - 14), 2) + pow((blockAxisY - 14), 2);
-
-	if (distance1Exp < distance2Exp)
-		return 9;
-	else return 14;
 }
 
 void moveRight(Block block, int *blockAxisX, int *blockAxisY)

@@ -4,7 +4,6 @@
 #include "check.h"
 
 void putBlock(Block block, int xCor, int yCor);	
-int findNearestStartingPoint(int blockAxisX, int blockAxisY);
 void moveRight(Block block, int *blockAxisX, int *blockAxisY);
 void moveLeft(Block block, int *blockAxisX, int *blockAxisY);
 void moveDown(Block block, int *blockAxisX, int *blockAxisY);
