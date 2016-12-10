@@ -1,6 +1,5 @@
 #ifndef BLOCK_H
 #define BLOCK_H
-#include "game.h"
 #include "check.h"
 
 void putBlock(Block block, int xCor, int yCor);	

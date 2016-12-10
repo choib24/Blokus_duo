@@ -1,6 +1,4 @@
-#include "game.h"
 #include "player.h"
-#include "check.h"
 #include "block.h"
 #include "file.h"
 
@@ -250,7 +248,7 @@ int main(void)
 						printf("Player cannot place block. Turn skipped \n");
 						(*isPlaying).isOver = 1;
 						move++;
-						turn *= -1; 			
+						turn *= -1;
 						continue;
 					}
 					while (isAlreadyUsed(*isPlaying, blockIndex - 1))

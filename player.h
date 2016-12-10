@@ -1,6 +1,5 @@
 #ifndef PLAYER_H
 #define PLAYER_H
-#include "game.h"
 #include "check.h"
 
 int getLocation(char coordinate);
