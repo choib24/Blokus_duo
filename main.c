@@ -250,7 +250,7 @@ int main(void)
 						printf("Player cannot place block. Turn skipped \n");
 						(*isPlaying).isOver = 1;
 						move++;
-						turn *= -1;
+						turn *= -1; //orange->violet violet->orange					
 						continue;
 					}
 					while (isAlreadyUsed(*isPlaying, blockIndex - 1))
