@@ -102,7 +102,7 @@ char getAdditionalAction()
 		printf("Current move is invalid \n\n");
 	else printf("Current move is valid \n\n");
 
-	printf("°Ê:move right  °Á:move left  °Ë:move up  °È:move down \n");
+	printf("‚Üí:move right  ‚Üê:move left  ‚Üë:move up  ‚Üì:move down \n");
 	printf("z:mirror  x:flip  c:rotate clockwise  v:rotate counterclockwise \n\n");
 	printf("Choose your action. Press Enter to confirm your current move: ");
 	userAction = getch();
