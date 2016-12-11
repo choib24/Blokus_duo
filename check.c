@@ -16,7 +16,8 @@ int isAlreadyUsed(Player player, int index)
 
 int isValidCoordinate(char coordinate)
 {
-	if ((coordinate >= '1' && coordinate <= '9') || (coordinate >= 'A' && coordinate <= 'E') || (coordinate >= 'a' && coordinate <= 'e'))
+	if ((coordinate >= '1' && coordinate <= '9') || (coordinate >= 'A' && coordinate <= 'E') ||
+	    (coordinate >= 'a' && coordinate <= 'e'))
 		return 1;
 	else return 0;
 }
