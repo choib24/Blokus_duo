@@ -96,7 +96,6 @@ char getYCoordinateInput()
 char getAdditionalAction()
 {
 	char userAction;
-	int doItAgain = 1; //Enter(confirm): 0, otherwise 1
 
 	if (status == -1)
 		printf("Current move is invalid \n\n");
