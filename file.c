@@ -73,22 +73,22 @@ void printFromFile(FILE *fp)
 					if (status == -1) //Invalid move
 						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 4);
 					else SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 2);
-					printf("°·");
+					printf("‚óºÔ∏é");
 					break;
 				case ORANGE:
 					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6);
-					printf("°·");
+					printf("‚óºÔ∏é");
 					break;
 				case VIOLET:
 					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 5);
-					printf("°·");
+					printf("‚óºÔ∏é");
 					break;
 				default:
 					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 					//start point
 					if ((i + 5 == 9 && j + 5 == 9) || (i + 5 == 14 && j + 5 == 14))
-						printf("°⁄");
-					else printf("°‡");
+						printf("‚òÖ");
+					else printf("‚òê");
 					break;
 					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 				}
